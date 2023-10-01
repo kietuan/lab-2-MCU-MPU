@@ -178,37 +178,42 @@ void display7SEG (unsigned int number)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	enum state{LED0_ON, LED1_ON};
-	const int ON_ = 0, OFF_ = 1;
+	typedef enum {LED0_ON, LED1_ON} state;
 
-	static enum state currentState = LED0_ON;
-	static int32_t counter = 50;
+	const int 	  	ON_ = 0, OFF_ = 1;
+	const int32_t 	PERIOD = 50;
+
+	static state 	currentState = LED0_ON;
+	static int32_t 	counter = PERIOD;
 
 	switch (currentState)
 	{
 		case LED0_ON:
 		{
 			counter--;
+			display7SEG(1);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, ON_);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
-			display7SEG(1);
 			if (counter <= 0)
 			{
-				counter = 50;
+				counter = PERIOD;
 				currentState = LED1_ON;
 			}
+			break;
 		}
+
 		case LED1_ON:
 		{
 			counter--;
+			display7SEG(2);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, ON_);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
-			display7SEG(2);
 			if (counter <= 0)
 			{
-				counter = 50;
+				counter = PERIOD;
 				currentState = LED0_ON;
 			}
+			break;
 		}
 	}
 }
