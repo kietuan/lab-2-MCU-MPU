@@ -348,15 +348,17 @@ int main(void)
 			  hour = 0;
 		  }
 		  updateClockBuffer (hour, minute);
+
+		  for (int i = 0; i < MAX_LED; i++) update7SEG(i);
+
 		  updateLED();
 
 		  setTimer0 (1000);
 	  }
-//  	  HAL_Delay (1000); //delay 1s
       /* USER CODE END WHILE */
 
       /* USER CODE BEGIN 3 */
-    }
+
     /* USER CODE END 3 */
   }
   /* USER CODE END 3 */
