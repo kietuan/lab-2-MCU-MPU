@@ -180,16 +180,24 @@ void display7SEG (unsigned int number)
 int index_led = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	static int counter = 50;
-	counter--;
+	static int SEG_counter = 25;
+	SEG_counter--;
 
-	if (counter <= 0)
+	if (SEG_counter <= 0)
 	{
-		counter = 50;
+		SEG_counter = 50;
 		update7SEG(index_led);
 
 		index_led++;
 		if (index_led >= 4) index_led = 0;
+	}
+
+	static int LED_counter = 99;
+	LED_counter--;
+	if (LED_counter <= 0)
+	{
+		LED_counter = 100;
+		updateLED();
 	}
 }
 
@@ -240,6 +248,31 @@ void update7SEG(int index)
 			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, ON_);
 			break;
 		}
+	}
+}
+
+
+void updateLED(void)
+{
+	typedef enum {ON_, OFF_} state;
+	static state currentState = ON_;
+
+	switch (currentState)
+	{
+		case ON_:
+		{
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+			currentState = OFF_;
+			break;
+		}
+
+		case OFF_:
+		{
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+			currentState = ON_;
+			break;
+		}
+
 	}
 }
 
