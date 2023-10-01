@@ -53,6 +53,8 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void display7SEG (unsigned int number);
+void update7SEG(void);
+void updateLED(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -178,43 +180,123 @@ void display7SEG (unsigned int number)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	typedef enum {LED0_ON, LED1_ON} state;
+	update7SEG();
+	updateLED();
+}
+
+void update7SEG(void)
+{
+	typedef enum {SEG0, SEG1, SEG2, SEG3} state;
 
 	const int 	  	ON_ = 0, OFF_ = 1;
 	const int32_t 	PERIOD = 50;
 
-	static state 	currentState = LED0_ON;
+	static state 	currentState = SEG0;
 	static int32_t 	counter = PERIOD;
 
 	switch (currentState)
 	{
-		case LED0_ON:
+		case SEG0:
 		{
 			counter--;
 			display7SEG(1);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, ON_);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
+			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, OFF_);
+			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, OFF_);
 			if (counter <= 0)
 			{
 				counter = PERIOD;
-				currentState = LED1_ON;
+				currentState = SEG1;
 			}
 			break;
 		}
 
-		case LED1_ON:
+		case SEG1:
 		{
 			counter--;
 			display7SEG(2);
-			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, ON_);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
+			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, ON_);
+			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, OFF_);
+			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, OFF_);
 			if (counter <= 0)
 			{
 				counter = PERIOD;
-				currentState = LED0_ON;
+				currentState = SEG2;
 			}
 			break;
 		}
+
+		case SEG2:
+		{
+			counter--;
+			display7SEG(3);
+			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
+			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
+			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, ON_);
+			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, OFF_);
+			if (counter <= 0)
+			{
+				counter = PERIOD;
+				currentState = SEG3;
+			}
+			break;
+		}
+
+		case SEG3:
+		{
+			counter--;
+			display7SEG(0);
+			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
+			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
+			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, OFF_);
+			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, ON_);
+			if (counter <= 0)
+			{
+				counter = PERIOD;
+				currentState = SEG0;
+			}
+			break;
+		}
+	}
+}
+
+void updateLED(void)
+{
+	typedef enum {ON_, OFF_} state;
+
+	const int32_t 	PERIOD = 100;
+
+	static state 		currentState = ON_;
+	static int32_t 	counter = PERIOD;
+
+	switch (currentState)
+	{
+		case ON_:
+		{
+			counter--;
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+			if (counter <= 0)
+			{
+				counter = PERIOD;
+				currentState = OFF_;
+			}
+			break;
+		}
+
+		case OFF_:
+		{
+			counter--;
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 1);
+			if (counter <= 0)
+			{
+				counter = PERIOD;
+				currentState = ON_;
+			}
+			break;
+		}
+
 	}
 }
 /* USER CODE END 0 */
@@ -357,14 +439,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, EN0_Pin|EN1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DOT_Pin|EN0_Pin|EN1_Pin|EN2_Pin
+                          |EN3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, a_Pin|b_Pin|c_Pin|d_Pin
                           |e_Pin|f_Pin|g_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : EN0_Pin EN1_Pin */
-  GPIO_InitStruct.Pin = EN0_Pin|EN1_Pin;
+  /*Configure GPIO pins : DOT_Pin EN0_Pin EN1_Pin EN2_Pin
+                           EN3_Pin */
+  GPIO_InitStruct.Pin = DOT_Pin|EN0_Pin|EN1_Pin|EN2_Pin
+                          |EN3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
