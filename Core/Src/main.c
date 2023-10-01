@@ -54,11 +54,15 @@ static void MX_TIM2_Init(void);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void display7SEG (unsigned int number);
 void update7SEG(int);
-void updateLED(void);
+void updateClockBuffer(int, int);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#define MAX_LED 4
+int index_led = 0;
+int led_buffer [MAX_LED] = {0 , 0 , 0 , 0};
+
 void display7SEG (unsigned int number)
 	{
 		const unsigned int ON_ = 0, OFF_ = 1;
@@ -176,25 +180,18 @@ void display7SEG (unsigned int number)
 				break;
 		}
 	}
-#define MAX_LED 4
-int index_led = 0;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	static int counter = 50;
-	counter--;
+	update7SEG(index_led);
 
-	if (counter <= 0)
-	{
-		counter = 50;
-		update7SEG(index_led);
+	index_led++;
+	if (index_led >= MAX_LED) index_led = 0;
 
-		index_led++;
-		if (index_led >= 4) index_led = 0;
-	}
+	//update every LEDS
+
 }
 
-
-int led_buffer [MAX_LED] = {1 , 2 , 3 , 4};
 void update7SEG(int index)
 {
 	const int ON_ = 0, OFF_ = 1;
@@ -243,6 +240,13 @@ void update7SEG(int index)
 	}
 }
 
+void updateClockBuffer(int hour, int minute)
+{
+	led_buffer[0] = hour / 10;
+	led_buffer[1] = hour % 10;
+	led_buffer[2] = minute / 10;
+	led_buffer[3] = minute % 10;
+}
 /* USER CODE END 0 */
 
 /**
@@ -276,12 +280,30 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2); // i think this sentence add timer 2 which is initialized above to the NVIC.
+  int hour = 15 , minute = 8 , second = 50;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  second ++;
+	  if ( second >= 60)
+	  {
+		  second = 0;
+		  minute ++;
+	  }
+	  if( minute >= 60)
+	  {
+		  minute = 0;
+		  hour ++;
+	  }
+	  if( hour >=24)
+	  {
+		  hour = 0;
+	  }
+	  updateClockBuffer (hour, minute) ;
+	  HAL_Delay (1000); //delay 1s
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
