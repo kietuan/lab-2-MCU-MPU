@@ -268,7 +268,7 @@ void updateLED(void)
 
 		case OFF_:
 		{
-			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 1);
 			currentState = ON_;
 			break;
 		}
