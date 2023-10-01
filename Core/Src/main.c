@@ -239,6 +239,30 @@ void updateClockBuffer(int hour, int minute)
 	led_buffer[3] = minute % 10;
 }
 
+void updateLED(void)
+{
+	typedef enum {ON_, OFF_} state;
+	static state currentState = ON_;
+
+	switch (currentState)
+	{
+		case ON_:
+		{
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+			currentState = OFF_;
+			break;
+		}
+
+		case OFF_:
+		{
+			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 1);
+			currentState = ON_;
+			break;
+		}
+
+	}
+}
+
 //ex6
 int timer0_counter = 0;
 int timer0_flag = 0;
@@ -323,7 +347,8 @@ int main(void)
 		  {
 			  hour = 0;
 		  }
-		  updateClockBuffer (hour, minute) ;
+		  updateClockBuffer (hour, minute);
+		  updateLED();
 
 		  setTimer0 (1000);
 	  }
