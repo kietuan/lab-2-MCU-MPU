@@ -53,7 +53,7 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void display7SEG (unsigned int number);
-void update7SEG(void);
+void update7SEG(int);
 void updateLED(void);
 /* USER CODE END PFP */
 
@@ -176,129 +176,73 @@ void display7SEG (unsigned int number)
 				break;
 		}
 	}
-
-
+#define MAX_LED 4
+int index_led = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	update7SEG();
-	updateLED();
+	static int counter = 50;
+	counter--;
+
+	if (counter <= 0)
+	{
+		counter = 50;
+		update7SEG(index_led);
+
+		index_led++;
+		if (index_led >= 4) index_led = 0;
+	}
 }
 
-void update7SEG(void)
+
+int led_buffer [MAX_LED] = {1 , 2 , 3 , 4};
+void update7SEG(int index)
 {
-	typedef enum {SEG0, SEG1, SEG2, SEG3} state;
+	const int ON_ = 0, OFF_ = 1;
 
-	const int 	  	ON_ = 0, OFF_ = 1;
-	const int32_t 	PERIOD = 50;
-
-	static state 	currentState = SEG0;
-	static int32_t 	counter = PERIOD;
-
-	switch (currentState)
+	switch (index)
 	{
-		case SEG0:
+		case 0:
 		{
-			counter--;
-			display7SEG(1);
+			display7SEG(led_buffer[index]);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, ON_);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
 			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, OFF_);
 			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, OFF_);
-			if (counter <= 0)
-			{
-				counter = PERIOD;
-				currentState = SEG1;
-			}
 			break;
 		}
 
-		case SEG1:
+		case 1:
 		{
-			counter--;
-			display7SEG(2);
+			display7SEG(led_buffer[index]);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, ON_);
 			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, OFF_);
 			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, OFF_);
-			if (counter <= 0)
-			{
-				counter = PERIOD;
-				currentState = SEG2;
-			}
 			break;
 		}
 
-		case SEG2:
+		case 2:
 		{
-			counter--;
-			display7SEG(3);
+			display7SEG(led_buffer[index]);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
 			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, ON_);
 			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, OFF_);
-			if (counter <= 0)
-			{
-				counter = PERIOD;
-				currentState = SEG3;
-			}
 			break;
 		}
 
-		case SEG3:
+		case 3:
 		{
-			counter--;
-			display7SEG(0);
+			display7SEG(led_buffer[index]);
 			HAL_GPIO_WritePin(EN0_GPIO_Port, EN0_Pin, OFF_);
 			HAL_GPIO_WritePin(EN1_GPIO_Port, EN1_Pin, OFF_);
 			HAL_GPIO_WritePin(EN2_GPIO_Port, EN2_Pin, OFF_);
 			HAL_GPIO_WritePin(EN3_GPIO_Port, EN3_Pin, ON_);
-			if (counter <= 0)
-			{
-				counter = PERIOD;
-				currentState = SEG0;
-			}
 			break;
 		}
 	}
 }
 
-void updateLED(void)
-{
-	typedef enum {ON_, OFF_} state;
-
-	const int32_t 	PERIOD = 100;
-
-	static state 		currentState = ON_;
-	static int32_t 	counter = PERIOD;
-
-	switch (currentState)
-	{
-		case ON_:
-		{
-			counter--;
-			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
-			if (counter <= 0)
-			{
-				counter = PERIOD;
-				currentState = OFF_;
-			}
-			break;
-		}
-
-		case OFF_:
-		{
-			counter--;
-			HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 1);
-			if (counter <= 0)
-			{
-				counter = PERIOD;
-				currentState = ON_;
-			}
-			break;
-		}
-
-	}
-}
 /* USER CODE END 0 */
 
 /**
