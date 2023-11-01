@@ -178,6 +178,8 @@ void display7SEG (unsigned int number)
 	}
 #define MAX_LED 4
 int index_led = 0;
+int led_buffer [MAX_LED] = {1 , 2 , 3 , 4};
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	static int counter = 50;
@@ -194,7 +196,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 
-int led_buffer [MAX_LED] = {1 , 2 , 3 , 4};
+
 void update7SEG(int index)
 {
 	const int ON_ = 0, OFF_ = 1;
