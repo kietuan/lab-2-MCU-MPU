@@ -322,6 +322,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2); // i think this sentence add timer 2 which is initialized above to the NVIC.
   int hour = 15 , minute = 8 , second = 50;
+  int index1 = 0;
   setTimer0 (1000);
 
   /* USER CODE END 2 */
@@ -349,7 +350,8 @@ int main(void)
 		  }
 		  updateClockBuffer (hour, minute);
 
-		  for (int i = 0; i < MAX_LED; i++) update7SEG(i);
+		  update7SEG(index1++);
+		  if (index1 >= MAX_LED) index1 = 0;
 
 		  updateLED();
 
