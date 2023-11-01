@@ -268,6 +268,8 @@ int timer0_counter = 0;
 int timer0_flag = 0;
 int timer1_counter = 0;
 int timer1_flag = 0;
+int timer2_counter = 0;
+int timer2_flag = 0;
 int TIMER_CYCLE = 10; //this is my hardware timer interrupt period, which is 10ms
 
 void setTimer0 ( int duration ) //to reset the timer.
@@ -279,6 +281,11 @@ void setTimer1 ( int duration ) //to reset the timer.
 {
 	timer1_counter = duration / TIMER_CYCLE ; //the duration must be a divisor of hardware timer period
 	timer1_flag = 0;
+}
+void setTimer2 ( int duration ) //to reset the timer.
+{
+	timer2_counter = duration / TIMER_CYCLE ; //the duration must be a divisor of hardware timer period
+	timer2_flag = 0;
 }
 
 void timer_run (void) {
@@ -292,6 +299,11 @@ void timer_run (void) {
 		timer1_counter--;
 		if( timer1_counter <= 0) timer1_flag = 1; //turn on the flag, the function will run
 	}
+	if( timer2_counter > 0)
+	{
+		timer2_counter--;
+		if( timer2_counter <= 0) timer2_flag = 1; //turn on the flag, the function will run
+	}
 
 }
 
@@ -303,26 +315,99 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 //ex 9
 const int MAX_LED_MATRIX = 8;
-uint8_t matrix_buffer[8] = {
-	0b11111111,
-	0b11000000,
-	0b10000000,
-	0b00110011,
-	0b00110011,
-	0b10000000,
-	0b11000000,
-	0b11111111
+uint8_t matrix_buffer[8][8] = {
+	{
+			0b11111111,
+			0b11000000,
+			0b10000000,
+			0b00110011,
+			0b00110011,
+			0b10000000,
+			0b11000000,
+			0b11111111
+	},
+	{
+			0b11111111,
+			0b11111111,
+			0b11000000,
+			0b10000000,
+			0b00110011,
+			0b00110011,
+			0b10000000,
+			0b11000000
+	},
+	{
+			0b11000000,
+			0b11111111,
+			0b11111111,
+			0b11000000,
+			0b10000000,
+			0b00110011,
+			0b00110011,
+			0b10000000
+	},
+	{
+			0b10000000,
+			0b11000000,
+			0b11111111,
+			0b11111111,
+			0b11000000,
+			0b10000000,
+			0b00110011,
+			0b00110011
+	},
+	{
+			0b00110011,
+			0b10000000,
+			0b11000000,
+			0b11111111,
+			0b11111111,
+			0b11000000,
+			0b10000000,
+			0b00110011
+	},
+	{
+			0b00110011,
+			0b00110011,
+			0b10000000,
+			0b11000000,
+			0b11111111,
+			0b11111111,
+			0b11000000,
+			0b10000000
+	},
+	{
+			0b10000000,
+			0b00110011,
+			0b00110011,
+			0b10000000,
+			0b11000000,
+			0b11111111,
+			0b11111111,
+			0b11000000
+	},
+	{
+			0b11000000,
+			0b10000000,
+			0b00110011,
+			0b00110011,
+			0b10000000,
+			0b11000000,
+			0b11111111,
+			0b11111111,
+	},
+
 };
 	
-void updateRow(int index){
-	HAL_GPIO_WritePin(ROW0_GPIO_Port, ROW0_Pin, ((matrix_buffer[index] >> 7) & 0b00000001));
-	HAL_GPIO_WritePin(ROW1_GPIO_Port, ROW1_Pin, ((matrix_buffer[index] >> 6) & 0b00000001));
-	HAL_GPIO_WritePin(ROW2_GPIO_Port, ROW2_Pin, ((matrix_buffer[index] >> 5) & 0b00000001));
-	HAL_GPIO_WritePin(ROW3_GPIO_Port, ROW3_Pin, ((matrix_buffer[index] >> 4) & 0b00000001));
-	HAL_GPIO_WritePin(ROW4_GPIO_Port, ROW4_Pin, ((matrix_buffer[index] >> 3) & 0b00000001));
-	HAL_GPIO_WritePin(ROW5_GPIO_Port, ROW5_Pin, ((matrix_buffer[index] >> 2) & 0b00000001));
-	HAL_GPIO_WritePin(ROW6_GPIO_Port, ROW6_Pin, ((matrix_buffer[index] >> 1) & 0b00000001));
-	HAL_GPIO_WritePin(ROW7_GPIO_Port, ROW7_Pin, ((matrix_buffer[index] >> 0) & 0b00000001));
+void updateRow(int shift_index, int index){
+	HAL_GPIO_WritePin(ROW0_GPIO_Port, ROW0_Pin, ((matrix_buffer[shift_index][index] >> 7) & 0b00000001));
+	HAL_GPIO_WritePin(ROW1_GPIO_Port, ROW1_Pin, ((matrix_buffer[shift_index][index] >> 6) & 0b00000001));
+	HAL_GPIO_WritePin(ROW2_GPIO_Port, ROW2_Pin, ((matrix_buffer[shift_index][index] >> 5) & 0b00000001));
+	HAL_GPIO_WritePin(ROW3_GPIO_Port, ROW3_Pin, ((matrix_buffer[shift_index][index] >> 4) & 0b00000001));
+	HAL_GPIO_WritePin(ROW4_GPIO_Port, ROW4_Pin, ((matrix_buffer[shift_index][index] >> 3) & 0b00000001));
+	HAL_GPIO_WritePin(ROW5_GPIO_Port, ROW5_Pin, ((matrix_buffer[shift_index][index] >> 2) & 0b00000001));
+	HAL_GPIO_WritePin(ROW6_GPIO_Port, ROW6_Pin, ((matrix_buffer[shift_index][index] >> 1) & 0b00000001));
+	HAL_GPIO_WritePin(ROW7_GPIO_Port, ROW7_Pin, ((matrix_buffer[shift_index][index] >> 0) & 0b00000001));
 }
 
 
@@ -451,8 +536,10 @@ int main(void)
 	int hour = 15 , minute = 8 , second = 50;
 	int index_7SEG = 0;
 	int index_led_matrix = 0;
+	int shift_index = 0;
 	setTimer0 (1000);
-	setTimer1 (500);
+	setTimer1 (200);
+	setTimer2 (1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -488,13 +575,21 @@ int main(void)
 
 	  if (timer1_flag)
 	  {
-		  setTimer1(500);
+		  setTimer1(200);
 		  updateColumm	(index_led_matrix);
-		  updateRow		(index_led_matrix);
+		  updateRow		(shift_index, index_led_matrix);
       
 		  index_led_matrix++;
 		  if (index_led_matrix >= MAX_LED_MATRIX)
 			  index_led_matrix = 0;
+	  }
+	  if (timer2_flag)
+	  {
+		  setTimer2(1000);
+
+		  shift_index++;
+		  if (shift_index >= 7)
+			  shift_index = 0;
 	  }
 	}
     /* USER CODE END WHILE */
